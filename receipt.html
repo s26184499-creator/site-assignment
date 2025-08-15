@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Order Receipt</title>
+  <link rel="stylesheet" href="css/receipt.css">
+</head>
+<body>
+  <div class="receipt-container">
+    <h1>Order Receipt</h1>
+    <p id="receipt-date"></p>
+    <table id="receipt-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="summary">
+      <p>Item Total: $<span id="item-total"></span></p>
+      <p>Shipping: $<span id="shipping"></span></p>
+      <p><strong>Total: $<span id="final-total"></span></strong></p>
+    </div>
+    <button onclick="window.print()">Print Receipt</button>
+  </div>
+
+  <script src="js/receipt.js"></script>
+</body>
+</html>

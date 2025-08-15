@@ -1,0 +1,138 @@
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #f0f4f8;
+  margin: 0;
+  padding: 0;
+}
+
+.payment-container {
+  max-width: 900px;
+  margin: 50px auto;
+  display: flex;
+  gap: 30px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.payment-form,
+.summary {
+  flex: 1;
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #444;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 6px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #0056b3;
+}
+
+.card-type {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.summary {
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+}
+
+.summary h3 {
+  margin-bottom: 15px;
+  color: #222;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.total {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.success {
+  display: none;
+  color: green;
+  text-align: center;
+  margin-top: 20px;
+  font-weight: bold;
+}
+.popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #4caf50;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: none;
+  font-size: 16px;
+  animation: fadeInOut 5s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@media (max-width: 768px) {
+  .payment-container {
+    flex-direction: column;
+  }
+}
