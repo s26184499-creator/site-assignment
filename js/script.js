@@ -167,6 +167,15 @@ function setupAddToCart() {
   if (!btn) return;
 
   btn.addEventListener("click", () => {
+    // ✅ Check if user is logged in
+    const loggedInUser = localStorage.getItem("loggedInUser");
+    if (!loggedInUser) {
+      alert("Please log in to add items to your cart.");
+      window.location.href = "login.html"; // redirect to login page
+      return;
+    }
+
+    // ✅ Continue if logged in
     const id = new URLSearchParams(window.location.search).get("id");
     const product = products?.[id];
     const qty = parseInt(document.getElementById("quantity").value) || 1;
@@ -299,6 +308,9 @@ function updateLoginStatus() {
 // --------------------
 // Function for feedback form validation
 // --------------------
+// --------------------
+// Feedback Form + Rating
+// --------------------
 function setupFeedbackForm() {
   const form = document.getElementById("feedbackForm");
   if (!form) return; // guard in case form isn't on the page
@@ -310,7 +322,7 @@ function setupFeedbackForm() {
     document.getElementById("message"),
   ];
 
-  const checkbox = document.getElementById("newsletter"); // add your required checkbox
+  const checkbox = document.getElementById("newsletter");
 
   // Disable button initially
   disableButton(submitBtn);
@@ -330,19 +342,75 @@ function setupFeedbackForm() {
   requiredFields.forEach((field) => {
     field.addEventListener("input", checkFormValidity);
   });
-
-  if (checkbox) {
-    checkbox.addEventListener("change", checkFormValidity);
-  }
+  if (checkbox) checkbox.addEventListener("change", checkFormValidity);
 
   // Run once in case of autofill
   checkFormValidity();
+
+  // --------------------
+  // STAR RATING LOGIC
+  // --------------------
+  const stars = form.querySelectorAll(".star");
+  const rating = document.getElementById("rating");
+
+  if (stars.length && rating) {
+    // Restore saved rating (optional)
+    const savedRating = localStorage.getItem("rating");
+    if (savedRating) {
+      rating.value = savedRating;
+      stars.forEach((s, index) => {
+        s.style.color = index < savedRating ? "#bfc22a" : "#333";
+      });
+    }
+
+    stars.forEach((star) => {
+      star.addEventListener("click", () => {
+        let ratingValue = star.getAttribute("data-rating");
+        rating.value = ratingValue;
+
+        stars.forEach((s, index) => {
+          s.style.color = index < ratingValue ? "#bfc22a" : "#333";
+        });
+
+        localStorage.setItem("rating", ratingValue);
+      });
+
+      // Hover effect
+      star.addEventListener("mouseenter", () => {
+        let hoverValue = star.getAttribute("data-rating");
+        stars.forEach((s, index) => {
+          s.style.color = index < hoverValue ? "#bfc22a" : "#333";
+        });
+      });
+
+      star.addEventListener("mouseleave", () => {
+        let crunchRating = rating.value;
+        stars.forEach((s, index) => {
+          s.style.color = index < crunchRating ? "#bfc22a" : "#333";
+        });
+      });
+    });
+  }
+
+  // Feedback submit
+  submitBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    alert("Thank you for your Feedback!");
+  });
+
+  // Reset feedback form
+  form.addEventListener("reset", () => {
+    rating.value = 0;
+    stars.forEach((s) => (s.style.color = "#333"));
+    localStorage.removeItem("rating");
+  });
 }
 
 // --------------------
 // Utility functions
 // --------------------
 function disableButton(btn) {
+  se;
   btn.disabled = true;
   btn.style.opacity = "0.6";
   btn.style.cursor = "not-allowed";
@@ -353,58 +421,3 @@ function enableButton(btn) {
   btn.style.opacity = "1";
   btn.style.cursor = "pointer";
 }
-
-const stars = document.querySelectorAll(".star");
-const rating = document.getElementById("rating");
-
-// Handle star click
-stars.forEach((star) => {
-  star.addEventListener("click", () => {
-    let ratingValue = star.getAttribute("data-rating");
-    rating.value = ratingValue;
-
-    stars.forEach((s, index) => {
-      s.style.color = index < ratingValue ? "#bfc22a" : "#333";
-    });
-
-    localStorage.setItem("rating", ratingValue);
-  });
-
-  // Hover effect
-  star.addEventListener("mouseenter", () => {
-    let hoverValue = star.getAttribute("data-rating");
-    stars.forEach((s, index) => {
-      s.style.color = index < hoverValue ? "#bfc22a" : "#333";
-    });
-  });
-
-  star.addEventListener("mouseleave", () => {
-    let crunchRating = rating.value;
-    stars.forEach((s, index) => {
-      s.style.color = index < crunchRating ? "#bfc22a" : "#333";
-    });
-  });
-});
-
-// Submit button
-const submit = document.querySelector(".submit-btn");
-submit.addEventListener("click", (Event) => {
-  Event.preventDefault();
-  alert("Thank you for your Feedback!");
-});
-
-// Handle form reset to reset star colors
-const feedbackForm = document.getElementById("feedbackForm");
-
-feedbackForm.addEventListener("reset", () => {
-  // Set hidden rating input back to 0
-  rating.value = 0;
-
-  // Reset all stars to default color
-  stars.forEach((s) => {
-    s.style.color = "#333"; // unfilled color
-  });
-
-  // (Optional) clear saved rating in localStorage too
-  localStorage.removeItem("rating");
-});
