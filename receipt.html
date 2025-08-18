@@ -2,9 +2,29 @@
 <html>
 <head>
   <title>Order Receipt</title>
+  <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/receipt.css">
 </head>
 <body>
+      <!-- Navigation Header -->
+    <header class="header">
+      <div class="container">
+        <div class="logo">
+          <h1>TechStore</h1>
+        </div>
+        <nav class="nav">
+          <ul>
+          <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="cart.html">Cart</a></li>
+            <li><a href="feedback.html">Feedback</a></li>
+            <li><a href="login.html" id="loginLink">Log In</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <br>
   <div class="receipt-container">
     <h1>Order Receipt</h1>
     <p id="receipt-date"></p>
@@ -28,5 +48,6 @@
   </div>
 
   <script src="js/receipt.js"></script>
+  <script src="js/script.js"></script>
 </body>
 </html>

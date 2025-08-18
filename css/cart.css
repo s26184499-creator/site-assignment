@@ -37,6 +37,12 @@
   font-size: 1.2rem;
 }
 
+.checkout-btn.disabled {
+  background: #aaa;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
 .checkout-btn {
   display: inline-block;
   margin-top: 1rem;

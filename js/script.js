@@ -117,6 +117,11 @@ const products = {
 document.addEventListener("DOMContentLoaded", function () {
   const page = window.location.pathname.split("/").pop();
 
+  // Run feedback form setup if feedback page
+  if (page === "feedback.html") {
+    setupFeedbackForm();
+  }
+
   if (page === "product.html") {
     renderProductDetails();
     setupAddToCart();
@@ -290,3 +295,116 @@ function updateLoginStatus() {
     });
   }
 }
+
+// --------------------
+// Function for feedback form validation
+// --------------------
+function setupFeedbackForm() {
+  const form = document.getElementById("feedbackForm");
+  if (!form) return; // guard in case form isn't on the page
+
+  const submitBtn = form.querySelector(".submit-btn");
+  const requiredFields = [
+    document.getElementById("name"),
+    document.getElementById("email"),
+    document.getElementById("message"),
+  ];
+
+  const checkbox = document.getElementById("newsletter"); // add your required checkbox
+
+  // Disable button initially
+  disableButton(submitBtn);
+
+  function checkFormValidity() {
+    let allFilled = requiredFields.every((field) => field.value.trim() !== "");
+    let checkboxChecked = checkbox && checkbox.checked;
+
+    if (allFilled && checkboxChecked) {
+      enableButton(submitBtn);
+    } else {
+      disableButton(submitBtn);
+    }
+  }
+
+  // Add listeners
+  requiredFields.forEach((field) => {
+    field.addEventListener("input", checkFormValidity);
+  });
+
+  if (checkbox) {
+    checkbox.addEventListener("change", checkFormValidity);
+  }
+
+  // Run once in case of autofill
+  checkFormValidity();
+}
+
+// --------------------
+// Utility functions
+// --------------------
+function disableButton(btn) {
+  btn.disabled = true;
+  btn.style.opacity = "0.6";
+  btn.style.cursor = "not-allowed";
+}
+
+function enableButton(btn) {
+  btn.disabled = false;
+  btn.style.opacity = "1";
+  btn.style.cursor = "pointer";
+}
+
+const stars = document.querySelectorAll(".star");
+const rating = document.getElementById("rating");
+
+// Handle star click
+stars.forEach((star) => {
+  star.addEventListener("click", () => {
+    let ratingValue = star.getAttribute("data-rating");
+    rating.value = ratingValue;
+
+    stars.forEach((s, index) => {
+      s.style.color = index < ratingValue ? "#bfc22a" : "#333";
+    });
+
+    localStorage.setItem("rating", ratingValue);
+  });
+
+  // Hover effect
+  star.addEventListener("mouseenter", () => {
+    let hoverValue = star.getAttribute("data-rating");
+    stars.forEach((s, index) => {
+      s.style.color = index < hoverValue ? "#bfc22a" : "#333";
+    });
+  });
+
+  star.addEventListener("mouseleave", () => {
+    let crunchRating = rating.value;
+    stars.forEach((s, index) => {
+      s.style.color = index < crunchRating ? "#bfc22a" : "#333";
+    });
+  });
+});
+
+// Submit button
+const submit = document.querySelector(".submit-btn");
+submit.addEventListener("click", (Event) => {
+  Event.preventDefault();
+  alert("Thank you for your Feedback!");
+});
+
+// Handle form reset to reset star colors
+const feedbackForm = document.getElementById("feedbackForm");
+
+feedbackForm.addEventListener("reset", () => {
+  // Set hidden rating input back to 0
+  rating.value = 0;
+
+  // Reset all stars to default color
+  stars.forEach((s) => {
+    s.style.color = "#333"; // unfilled color
+  });
+
+  // (Optional) clear saved rating in localStorage too
+  localStorage.removeItem("rating");
+});
