@@ -167,15 +167,6 @@ function setupAddToCart() {
   if (!btn) return;
 
   btn.addEventListener("click", () => {
-    // ✅ Check if user is logged in
-    const loggedInUser = localStorage.getItem("loggedInUser");
-    if (!loggedInUser) {
-      alert("Please log in to add items to your cart.");
-      window.location.href = "login.html"; // redirect to login page
-      return;
-    }
-
-    // ✅ Continue if logged in
     const id = new URLSearchParams(window.location.search).get("id");
     const product = products?.[id];
     const qty = parseInt(document.getElementById("quantity").value) || 1;
@@ -207,8 +198,9 @@ function setupRegister() {
   const form = document.getElementById("registerForm");
   if (!form) return;
 
-  form.addEventListener("submit", function (e) {
+  form.addEventListener("submit", async function (e) {
     e.preventDefault();
+
     const name = document.getElementById("regName").value.trim();
     const email = document.getElementById("regEmail").value.trim();
     const password = document.getElementById("regPassword").value;
@@ -231,14 +223,26 @@ function setupRegister() {
 
     if (!valid) return;
 
-    if (localStorage.getItem(email)) {
-      alert("User already registered with this email.");
-      return;
-    }
+    // Call the backend API instead of using localStorage
+    try {
+      const response = await fetch("http://localhost:5000/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: name, email, password }),
+      });
 
-    localStorage.setItem(email, JSON.stringify({ name, email, password }));
-    alert("Registration successful! Please log in.");
-    window.location.href = "login.html";
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.msg); // "User registered successfully"
+        window.location.href = "login.html";
+      } else {
+        alert(data.msg || "Registration failed");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred during registration");
+    }
   });
 }
 
@@ -249,41 +253,40 @@ function setupLogin() {
   const form = document.getElementById("loginForm");
   if (!form) return;
 
-  form.addEventListener("submit", function (e) {
+  form.addEventListener("submit", async function (e) {
     e.preventDefault();
+
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
 
-    let valid = true;
+    try {
+      const response = await fetch("http://localhost:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    document.getElementById("loginEmailError").textContent = emailRegex.test(
-      email
-    )
-      ? ""
-      : "Invalid email format.";
-    valid &= emailRegex.test(email);
+      const data = await response.json();
 
-    document.getElementById("loginPasswordError").textContent =
-      password.length >= 6 ? "" : "Password must be at least 6 characters.";
-    valid &= password.length >= 6;
+      if (response.ok && data.success) {
+        // Save login state in localStorage (session handling)
+        localStorage.setItem(
+          "loggedInUser",
+          JSON.stringify({
+            username: data.username,
+            email: data.email,
+          })
+        );
 
-    if (!valid) return;
-
-    const storedUser = JSON.parse(localStorage.getItem(email));
-    if (!storedUser) {
-      alert("No account found. Please register.");
-      return;
+        alert("Login successful!");
+        window.location.href = "index.html"; // Redirect after login
+      } else {
+        alert(data.msg || "Login failed");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred during login");
     }
-
-    if (storedUser.password !== password) {
-      alert("Incorrect password.");
-      return;
-    }
-
-    localStorage.setItem("loggedInUser", JSON.stringify(storedUser));
-    alert(`Welcome, ${storedUser.name}!`);
-    window.location.href = "index.html";
   });
 }
 
@@ -293,8 +296,9 @@ function setupLogin() {
 function updateLoginStatus() {
   const user = JSON.parse(localStorage.getItem("loggedInUser"));
   const loginLink = document.getElementById("loginLink");
+
   if (user && loginLink) {
-    loginLink.textContent = user.name;
+    loginLink.textContent = user.username;
     loginLink.href = "#";
     loginLink.addEventListener("click", () => {
       if (confirm("Logout?")) {
@@ -308,9 +312,6 @@ function updateLoginStatus() {
 // --------------------
 // Function for feedback form validation
 // --------------------
-// --------------------
-// Feedback Form + Rating
-// --------------------
 function setupFeedbackForm() {
   const form = document.getElementById("feedbackForm");
   if (!form) return; // guard in case form isn't on the page
@@ -322,7 +323,7 @@ function setupFeedbackForm() {
     document.getElementById("message"),
   ];
 
-  const checkbox = document.getElementById("newsletter");
+  const checkbox = document.getElementById("newsletter"); // add your required checkbox
 
   // Disable button initially
   disableButton(submitBtn);
@@ -342,75 +343,19 @@ function setupFeedbackForm() {
   requiredFields.forEach((field) => {
     field.addEventListener("input", checkFormValidity);
   });
-  if (checkbox) checkbox.addEventListener("change", checkFormValidity);
+
+  if (checkbox) {
+    checkbox.addEventListener("change", checkFormValidity);
+  }
 
   // Run once in case of autofill
   checkFormValidity();
-
-  // --------------------
-  // STAR RATING LOGIC
-  // --------------------
-  const stars = form.querySelectorAll(".star");
-  const rating = document.getElementById("rating");
-
-  if (stars.length && rating) {
-    // Restore saved rating (optional)
-    const savedRating = localStorage.getItem("rating");
-    if (savedRating) {
-      rating.value = savedRating;
-      stars.forEach((s, index) => {
-        s.style.color = index < savedRating ? "#bfc22a" : "#333";
-      });
-    }
-
-    stars.forEach((star) => {
-      star.addEventListener("click", () => {
-        let ratingValue = star.getAttribute("data-rating");
-        rating.value = ratingValue;
-
-        stars.forEach((s, index) => {
-          s.style.color = index < ratingValue ? "#bfc22a" : "#333";
-        });
-
-        localStorage.setItem("rating", ratingValue);
-      });
-
-      // Hover effect
-      star.addEventListener("mouseenter", () => {
-        let hoverValue = star.getAttribute("data-rating");
-        stars.forEach((s, index) => {
-          s.style.color = index < hoverValue ? "#bfc22a" : "#333";
-        });
-      });
-
-      star.addEventListener("mouseleave", () => {
-        let crunchRating = rating.value;
-        stars.forEach((s, index) => {
-          s.style.color = index < crunchRating ? "#bfc22a" : "#333";
-        });
-      });
-    });
-  }
-
-  // Feedback submit
-  submitBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    alert("Thank you for your Feedback!");
-  });
-
-  // Reset feedback form
-  form.addEventListener("reset", () => {
-    rating.value = 0;
-    stars.forEach((s) => (s.style.color = "#333"));
-    localStorage.removeItem("rating");
-  });
 }
 
 // --------------------
 // Utility functions
 // --------------------
 function disableButton(btn) {
-  se;
   btn.disabled = true;
   btn.style.opacity = "0.6";
   btn.style.cursor = "not-allowed";
@@ -421,3 +366,58 @@ function enableButton(btn) {
   btn.style.opacity = "1";
   btn.style.cursor = "pointer";
 }
+
+const stars = document.querySelectorAll(".star");
+const rating = document.getElementById("rating");
+
+// Handle star click
+stars.forEach((star) => {
+  star.addEventListener("click", () => {
+    let ratingValue = star.getAttribute("data-rating");
+    rating.value = ratingValue;
+
+    stars.forEach((s, index) => {
+      s.style.color = index < ratingValue ? "#bfc22a" : "#333";
+    });
+
+    localStorage.setItem("rating", ratingValue);
+  });
+
+  // Hover effect
+  star.addEventListener("mouseenter", () => {
+    let hoverValue = star.getAttribute("data-rating");
+    stars.forEach((s, index) => {
+      s.style.color = index < hoverValue ? "#bfc22a" : "#333";
+    });
+  });
+
+  star.addEventListener("mouseleave", () => {
+    let crunchRating = rating.value;
+    stars.forEach((s, index) => {
+      s.style.color = index < crunchRating ? "#bfc22a" : "#333";
+    });
+  });
+});
+
+// Submit button
+// const submit = document.querySelector(".submit-btn");
+// submit.addEventListener("click", (Event) => {
+//   Event.preventDefault();
+//   alert("Thank you for your Feedback!");
+// });
+
+// Handle form reset to reset star colors
+const feedbackForm = document.getElementById("feedbackForm");
+
+feedbackForm.addEventListener("reset", () => {
+  // Set hidden rating input back to 0
+  rating.value = 0;
+
+  // Reset all stars to default color
+  stars.forEach((s) => {
+    s.style.color = "#333"; // unfilled color
+  });
+
+  // (Optional) clear saved rating in localStorage too
+  localStorage.removeItem("rating");
+});
