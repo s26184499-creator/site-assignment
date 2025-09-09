@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 1.5rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: #ecf0f1;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar ul li a {
+            color: #ecf0f1;
+            text-decoration: none;
+            display: block;
+            padding: 18px 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 400;
+        }
+
+        .sidebar ul li a:hover {
+            background: rgba(255,255,255,0.1);
+            padding-left: 35px;
+            color: #3498db;
+        }
+
+        .sidebar ul li a::before {
+            content: '▸';
+            position: absolute;
+            left: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar ul li a:hover::before {
+            opacity: 1;
+        }
+
+        /* Active menu item styling */
+        .sidebar ul li a.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding-left: 35px;
+            border-left: 4px solid #3498db;
+            font-weight: 600;
+        }
+
+        .sidebar ul li a.active::before {
+            content: '●';
+            opacity: 1;
+            color: #3498db;
+            left: 12px;
+        }
+
+        .sidebar ul li a.active:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            color: white;
+            padding-left: 35px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            margin-bottom: 0;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .form-container {
+            background: white;
+            margin: 40px;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 700px;
+            margin: 40px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .form-container h2 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 1.6rem;
+            font-weight: 400;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        input[type="file"] {
+            background: white;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:hover {
+            background: rgba(102, 126, 234, 0.05);
+            border-color: #764ba2;
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #message {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .message-success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            display: block !important;
+        }
+
+        .message-error {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            display: block !important;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .admin-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .sidebar h2 {
+                margin: 20px 0;
+            }
+            
+            .sidebar ul {
+                display: flex;
+                overflow-x: auto;
+            }
+            
+            .sidebar ul li {
+                min-width: 120px;
+                border-bottom: none;
+                border-right: 1px solid rgba(255,255,255,0.1);
+            }
+            
+            .sidebar ul li a.active {
+                border-left: none;
+                border-bottom: 4px solid #3498db;
+            }
+            
+            .form-container {
+                margin: 20px;
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>Admin Panel</h2>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="addProduct.html" class="active">Add Product</a></li>
+                <li><a href="manageProduct.html">Manage Products</a></li>
+                <li><a href="#">Logout</a></li>
+            </ul>
+        </aside>
+        <div class="main-content">
+            <!-- Navbar -->
+            <nav class="navbar">
+                <h1>Add Product</h1>
+            </nav>
+            <!-- Add Product Form -->
+            <div class="form-container">
+                <h2>Add New Product</h2>
+                <form id="product-form">
+                    <div class="form-group">
+                        <label for="title">Product Title</label>
+                        <input type="text" id="title" name="title" placeholder="Enter product title" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" placeholder="Enter product description" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="image">Upload Product Image</label>
+                        <input type="file" id="image" name="image" accept="image/*" required />
+                    </div>
+                    <button type="submit">Add Product</button>
+                </form>
+                <div id="message"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('product-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const imageInput = document.getElementById('image');
+            const file = imageInput.files[0];
+            const messageDiv = document.getElementById('message');
+            
+            if (file) {
+                // Show loading state
+                const submitButton = document.querySelector('button[type="submit"]');
+                const originalText = submitButton.textContent;
+                submitButton.textContent = 'Adding Product...';
+                submitButton.disabled = true;
+                
+                const reader = new FileReader();
+                reader.onloadend = function () {
+                    const product = {
+                        id: Date.now(), // Simple ID generation
+                        title,
+                        description,
+                        image: reader.result  // Base64 image
+                    };
+                    
+                    // Store in memory instead of localStorage for Claude.ai compatibility
+                    let products = window.products || [];
+                    products.push(product);
+                    window.products = products;
+                    
+                    // Show success message
+                    messageDiv.textContent = 'Product added successfully!';
+                    messageDiv.className = 'message-success';
+                    
+                    // Reset form
+                    document.getElementById('product-form').reset();
+                    
+                    // Reset button
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                    
+                    // Hide message after 3 seconds
+                    setTimeout(() => {
+                        messageDiv.style.display = 'none';
+                        messageDiv.className = '';
+                    }, 3000);
+                };
+                
+                reader.onerror = function() {
+                    messageDiv.textContent = 'Error reading file. Please try again.';
+                    messageDiv.className = 'message-error';
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                };
+                
+                reader.readAsDataURL(file);  // Convert image to base64
+            } else {
+                messageDiv.textContent = 'Please select an image file.';
+                messageDiv.className = 'message-error';
+            }
+        });
+
+        // Add hover effect to file input
+        const fileInput = document.getElementById('image');
+        fileInput.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#764ba2';
+            this.style.background = 'rgba(118, 75, 162, 0.1)';
+        });
+
+        fileInput.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#667eea';
+            this.style.background = 'white';
+        });
+
+        fileInput.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#667eea';
+            this.style.background = 'white';
+        });
+    </script>
+</body>
+</html>
