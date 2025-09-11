@@ -41,7 +41,7 @@ app.post("/api/register", async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      userType: userType || "customer"  // Default to "customer"
+      userType: userType || "customer", // Default to "customer"
     });
 
     await newUser.save();
@@ -52,7 +52,6 @@ app.post("/api/register", async (req, res) => {
     res.status(500).json({ success: false, msg: "Internal Server Error" });
   }
 });
-
 
 // Login API
 app.post("/api/login", async (req, res) => {
@@ -94,15 +93,51 @@ app.post("/api/login", async (req, res) => {
 
 // Get products API
 app.get("/api/products", async (req, res) => {
-  const products = await Product.find();
-  res.json(products);
+  try {
+    const products = await Product.find();
+    res.json({
+      success: true,
+      products: products,
+    });
+  } catch (err) {
+    console.error("Fetch products error:", err);
+    res.status(500).json({
+      success: false,
+      msg: "Failed to fetch products",
+    });
+  }
 });
 
 // Add product (optional, for admin)
 app.post("/api/products", async (req, res) => {
-  const newProduct = new Product(req.body);
-  await newProduct.save();
-  res.json({ msg: "Product added", product: newProduct });
+  try {
+    const { title, description, imageUrl, price } = req.body;
+
+    if (!title || !description || !imageUrl || price === undefined) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Missing required fields" });
+    }
+
+    const newProduct = new Product({ title, description, imageUrl, price });
+    await newProduct.save();
+
+    res.json({ success: true, msg: "Product added", product: newProduct });
+  } catch (err) {
+    console.error("Add product error:", err);
+    res.status(500).json({ success: false, msg: "Failed to add product" });
+  }
+});
+
+// Delete product (optional, for admin)
+app.delete("/api/products/:id", async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ success: true, msg: "Product deleted successfully" });
+  } catch (err) {
+    console.error("Delete product error:", err);
+    res.status(500).json({ success: false, msg: "Failed to delete product" });
+  }
 });
 
 const PORT = 5000;

@@ -409,15 +409,18 @@ stars.forEach((star) => {
 // Handle form reset to reset star colors
 const feedbackForm = document.getElementById("feedbackForm");
 
-feedbackForm.addEventListener("reset", () => {
+// feedbackForm.addEventListener("reset", () => {
   // Set hidden rating input back to 0
-  rating.value = 0;
+  // rating.value = 0;
 
   // Reset all stars to default color
-  stars.forEach((s) => {
-    s.style.color = "#333"; // unfilled color
-  });
+  // stars.forEach((s) => {
+  //   s.style.color = "#333"; // unfilled color
+  // });
 
   // (Optional) clear saved rating in localStorage too
-  localStorage.removeItem("rating");
-});
+  // localStorage.removeItem("rating");
+// });
+
+// Display products in the grid
+

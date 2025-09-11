@@ -132,6 +132,7 @@ body {
 
 .product-card {
   background: white;
+  width: 20rem;
   border-radius: 15px;
   overflow: hidden;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
