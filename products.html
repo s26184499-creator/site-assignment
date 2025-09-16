@@ -76,6 +76,10 @@
         productsGrid.style.display = "grid";
 
         products.forEach((product) => {
+          const cardLink = document.createElement("a");
+          cardLink.href = `product.html?id=${product._id}`;
+          cardLink.className = "product-card-link"; // Add class for styling anchor
+
           const card = document.createElement("div");
           card.className = "product-card";
 
@@ -102,8 +106,8 @@
               : "Price not available";
 
           card.append(imageImg, titleDiv, descDiv, priceDiv);
-
-          productsGrid.appendChild(card);
+          cardLink.appendChild(card);
+          productsGrid.appendChild(cardLink);
         });
       }
 

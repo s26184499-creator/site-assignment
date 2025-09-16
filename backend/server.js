@@ -76,7 +76,7 @@ app.post("/api/login", async (req, res) => {
 
     // Determine redirect URL based on user type
     const redirectUrl =
-      user.userType === "admin" ? "/admin/dashboard.html" : "/index.html";
+      user.userType === "admin" ? "l̥" : "/index.html";
 
     res.json({
       success: true,
