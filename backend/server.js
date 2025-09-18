@@ -2,30 +2,32 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
+
 const User = require("./models/User");
 const Product = require("./models/Product");
+const Order = require("./models/Order");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Connect to MongoDB (local)
+// Connect MongoDB
 mongoose
   .connect("mongodb://localhost:27017/ecommerce", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.log(err));
+  .catch((err) => console.log("❌ DB Error:", err));
 
-const bcrypt = require("bcrypt");
+// ================== USER AUTH ==================
 
-// Registration API
+// Register
 app.post("/api/register", async (req, res) => {
   try {
     const { username, email, password, userType } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
@@ -33,19 +35,16 @@ app.post("/api/register", async (req, res) => {
         .json({ success: false, msg: "Email already registered" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create and save new user
     const newUser = new User({
       username,
       email,
       password: hashedPassword,
-      userType: userType || "customer", // Default to "customer"
+      userType: userType || "customer",
     });
 
     await newUser.save();
-
     res.json({ success: true, msg: "User registered successfully" });
   } catch (err) {
     console.error("Registration error:", err);
@@ -53,13 +52,12 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// Login API
+// Login
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-
     if (!user) {
       return res
         .status(401)
@@ -67,16 +65,14 @@ app.post("/api/login", async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
       return res
         .status(401)
         .json({ success: false, msg: "Invalid email or password" });
     }
 
-    // Determine redirect URL based on user type
     const redirectUrl =
-      user.userType === "admin" ? "l̥" : "/index.html";
+      user.userType === "admin" ? "/admin/dashboard.html" : "/index.html";
 
     res.json({
       success: true,
@@ -86,33 +82,39 @@ app.post("/api/login", async (req, res) => {
       redirect: redirectUrl,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Login error:", err);
     res.status(500).json({ success: false, msg: "Server error" });
   }
 });
 
-// Get products API
+// ================== PRODUCT APIs ==================
+
+// Get all products
 app.get("/api/products", async (req, res) => {
   try {
     const products = await Product.find();
-    res.json({
-      success: true,
-      products: products,
-    });
+    res.json({ success: true, products });
   } catch (err) {
-    console.error("Fetch products error:", err);
-    res.status(500).json({
-      success: false,
-      msg: "Failed to fetch products",
-    });
+    res.status(500).json({ success: false, msg: "Failed to fetch products" });
   }
 });
 
-// Add product (optional, for admin)
+// Get single product
+app.get("/api/products/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product)
+      return res.status(404).json({ success: false, msg: "Product not found" });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ success: false, msg: "Error fetching product" });
+  }
+});
+
+// Add new product
 app.post("/api/products", async (req, res) => {
   try {
     const { title, description, imageUrl, price } = req.body;
-
     if (!title || !description || !imageUrl || price === undefined) {
       return res
         .status(400)
@@ -124,22 +126,57 @@ app.post("/api/products", async (req, res) => {
 
     res.json({ success: true, msg: "Product added", product: newProduct });
   } catch (err) {
-    console.error("Add product error:", err);
     res.status(500).json({ success: false, msg: "Failed to add product" });
   }
 });
 
-// Delete product (optional, for admin)
+// Update product
+app.put("/api/products/:id", async (req, res) => {
+  try {
+    const { title, description, imageUrl, price } = req.body;
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      { title, description, imageUrl, price },
+      { new: true }
+    );
+
+    if (!updatedProduct)
+      return res.status(404).json({ success: false, msg: "Product not found" });
+
+    res.json({
+      success: true,
+      msg: "Product updated",
+      product: updatedProduct,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, msg: "Failed to update product" });
+  }
+});
+
+// Delete product
 app.delete("/api/products/:id", async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
-    res.json({ success: true, msg: "Product deleted successfully" });
+    res.json({ success: true, msg: "Product deleted" });
   } catch (err) {
-    console.error("Delete product error:", err);
     res.status(500).json({ success: false, msg: "Failed to delete product" });
   }
 });
 
+// ================== DASHBOARD STATS ==================
+app.get("/api/stats", async (req, res) => {
+  try {
+    const totalProducts = await Product.countDocuments();
+    const totalOrders = await Order.countDocuments();
+    const totalUsers = await User.countDocuments();
+
+    res.json({ success: true, totalProducts, totalOrders, totalUsers });
+  } catch (err) {
+    res.status(500).json({ success: false, msg: "Failed to fetch stats" });
+  }
+});
+
+// ================== SERVER START ==================
 const PORT = 5000;
 app.listen(PORT, () =>
   console.log(`🚀 Server running on http://localhost:${PORT}`)
