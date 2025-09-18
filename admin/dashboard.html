@@ -123,6 +123,13 @@
         padding: 30px;
       }
 
+      .dash-content{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+
       /* Stats Cards */
       .stats-grid {
         display: grid;
@@ -137,6 +144,8 @@
         padding: 25px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         text-align: center;
+        width: 33%;
+        /* margin: 10px; */
         transition: transform 0.3s ease;
       }
 
@@ -252,7 +261,7 @@
           <li><a href="dashboard.html" class="active">Dashboard</a></li>
           <li><a href="addProduct.html">Add Product</a></li>
           <li><a href="manageProduct.html">Manage Products</a></li>
-          <li><a href="#">Logout</a></li>
+          <li><a href="#" id="logoutLink">Logout</a></li>
         </ul>
       </aside>
       <div class="main-content">
@@ -260,30 +269,24 @@
         <nav class="navbar">
           <h1>Dashboard</h1>
         </nav>
-        
+
         <!-- Dashboard Content -->
         <div class="dashboard-content">
-          <!-- Stats Cards -->
-          <div class="stats-grid">
+          <div class="dash-content">
             <div class="stat-card">
-              <div class="stat-number">247</div>
-              <div class="stat-title">Total Products</div>
-            </div>
+            <div id="totalProducts" class="stat-number">0</div>
+            <div class="stat-title">Total Products</div>
+          </div>
 
-            <div class="stat-card">
-              <div class="stat-number">1,429</div>
-              <div class="stat-title">Total Orders</div>
-            </div>
+          <div class="stat-card">
+            <div id="totalOrders" class="stat-number">0</div>
+            <div class="stat-title">Total Orders</div>
+          </div>
 
-            <div class="stat-card">
-              <div class="stat-number">$24,580</div>
-              <div class="stat-title">Revenue</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-number">892</div>
-              <div class="stat-title">Users</div>
-            </div>
+          <div class="stat-card">
+            <div id="totalUsers" class="stat-number">0</div>
+            <div class="stat-title">Users</div>
+          </div>
           </div>
 
           <!-- Quick Actions -->
@@ -291,12 +294,14 @@
             <h3>Quick Actions</h3>
             <div class="action-buttons">
               <a href="addProduct.html" class="action-btn">Add New Product</a>
-              <a href="manageProduct.html" class="action-btn">Manage Products</a>
-              <a href="#" class="action-btn">View Reports</a>
+              <a href="manageProduct.html" class="action-btn"
+                >Manage Products</a
+              >
             </div>
           </div>
         </div>
       </div>
     </div>
   </body>
+  <script src="js/script.js"></script>
 </html>

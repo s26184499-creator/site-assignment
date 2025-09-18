@@ -222,7 +222,7 @@
         line-height: 1.5;
         margin-bottom: 15px;
         display: -webkit-box;
-        -webkit-line-clamp: 3;
+        /* -webkit-line-clamp: 3; */
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
@@ -340,7 +340,7 @@
           <li>
             <a href="manageProduct.html" class="active">Manage Products</a>
           </li>
-          <li><a href="#">Logout</a></li>
+          <li><a href="#" id="logoutLink">Logout</a></li>
         </ul>
       </aside>
       <div class="main-content">
@@ -377,6 +377,7 @@
     </div>
 
     <script src="/js/admin/product_management.js"></script>
+<script src="js/script.js"></script>
 
     <style>
       @keyframes slideIn {

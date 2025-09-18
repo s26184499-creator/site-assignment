@@ -275,11 +275,12 @@ function setupLogin() {
           JSON.stringify({
             username: data.username,
             email: data.email,
+            userType: data.userType,
           })
         );
 
         alert("Login successful!");
-        window.location.href = "index.html"; // Redirect after login
+        window.location.href = data.redirect; // Redirect after login
       } else {
         alert(data.msg || "Login failed");
       }
