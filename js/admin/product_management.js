@@ -77,8 +77,10 @@ async function loadProducts() {
 }
 
 function editProduct(id) {
-  alert(`Edit product with ID: ${id}`);
+  // Redirect to addProduct.html with query parameter
+  window.location.href = `addProduct.html?id=${id}`;
 }
+
 
 function deleteProduct(id) {
   if (confirm("Are you sure you want to delete this product?")) {

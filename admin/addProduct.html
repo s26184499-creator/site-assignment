@@ -320,139 +320,183 @@
           <li><a href="#" id="logoutLink">Logout</a></li>
         </ul>
       </aside>
+
       <div class="main-content">
         <!-- Navbar -->
         <nav class="navbar">
-          <h1>Add Product</h1>
+          <h1 id="form-title">Add Product</h1>
         </nav>
-        <!-- Add Product Form -->
+
+        <!-- Add/Edit Product Form -->
         <div class="form-container">
-          <h2>Add New Product</h2>
-          <form id="product-form">
+          <form id="productForm">
+            <input type="hidden" id="productId" />
+
             <div class="form-group">
               <label for="title">Product Title</label>
               <input
                 type="text"
                 id="title"
-                name="title"
                 placeholder="Enter product title"
                 required
               />
             </div>
+
             <div class="form-group">
               <label for="description">Description</label>
               <textarea
                 id="description"
-                name="description"
                 placeholder="Enter product description"
                 rows="4"
                 required
               ></textarea>
             </div>
+
             <div class="form-group">
               <label for="price">Price</label>
               <input
                 type="number"
                 id="price"
-                name="price"
                 placeholder="Enter product price"
-                required
-              ></textarea>
-            </div>
-            <div class="form-group">
-              <label for="image">Upload Product Image</label>
-              <input
-                type="file"
-                id="image"
-                name="image"
-                accept="image/*"
                 required
               />
             </div>
+
+            <div class="form-group">
+              <label for="image">Upload Product Image</label>
+              <input type="file" id="image" accept="image/*" />
+              <small>Leave empty to keep existing image when editing</small>
+            </div>
+
             <button type="submit">Add Product</button>
           </form>
+
+          <div id="message"></div>
+
           <div id="message"></div>
         </div>
       </div>
     </div>
-<script src="js/script.js"></script>
+
+    <script src="js/script.js"></script>
     <script>
-      document
-        .getElementById("product-form")
-        .addEventListener("submit", async function (e) {
+      document.addEventListener("DOMContentLoaded", async () => {
+        const params = new URLSearchParams(window.location.search);
+        const productId = params.get("id");
+
+        const formTitle = document.getElementById("form-title");
+        const submitButton = document.querySelector('button[type="submit"]');
+        const messageDiv = document.getElementById("message");
+        const form = document.getElementById("product-form");
+
+        let existingImageUrl = null;
+
+        if (productId) {
+          // Switch to edit mode
+          formTitle.textContent = "Edit Product";
+          submitButton.textContent = "Update Product";
+          document.getElementById("productId").value = productId;
+
+          // Fetch existing product details
+          try {
+            const res = await fetch(
+              `http://localhost:5000/api/products/${productId}`
+            );
+            const data = await res.json();
+            if (data.success) {
+              const p = data.product;
+              document.getElementById("title").value = p.title;
+              document.getElementById("description").value = p.description;
+              document.getElementById("price").value = p.price;
+              existingImageUrl = p.imageUrl || null;
+            }
+          } catch (err) {
+            console.error("Failed to fetch product:", err);
+          }
+        }
+
+        form.addEventListener("submit", async (e) => {
           e.preventDefault();
 
-          const title = document.getElementById("title").value;
-          const description = document.getElementById("description").value;
+          const title = document.getElementById("title").value.trim();
+          const description = document
+            .getElementById("description")
+            .value.trim();
+          const price = parseFloat(document.getElementById("price").value);
           const imageInput = document.getElementById("image");
-          const price = document.getElementById("price").value;
           const file = imageInput.files[0];
-          const messageDiv = document.getElementById("message");
-          const submitButton = document.querySelector('button[type="submit"]');
           const originalText = submitButton.textContent;
 
-          if (file) {
-            submitButton.textContent = "Adding Product...";
-            submitButton.disabled = true;
+          submitButton.textContent = productId ? "Updating..." : "Adding...";
+          submitButton.disabled = true;
 
-            const reader = new FileReader();
-            reader.onloadend = async function () {
-              const productData = {
-                title,
-                description,
-                imageUrl: reader.result, // Send base64 image as imageUrl
-                price: parseFloat(price)
-              };
+          const handleSubmit = async (imageUrl) => {
+            const productData = { title, description, price };
 
-              try {
-                const response = await fetch(
-                  "http://localhost:5000/api/products",
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(productData),
-                  }
-                );
+            // Use new image if provided, otherwise keep existing
+            if (imageUrl) {
+              productData.imageUrl = imageUrl;
+            } else if (existingImageUrl) {
+              productData.imageUrl = existingImageUrl;
+            }
 
-                const result = await response.json();
-
-                if (result.success !== false) {
-                  messageDiv.textContent = "Product added successfully!";
-                  messageDiv.className = "message-success";
-                  document.getElementById("product-form").reset();
-                } else {
-                  messageDiv.textContent = "Failed to add product";
-                  messageDiv.className = "message-error";
+            try {
+              const response = await fetch(
+                productId
+                  ? `http://localhost:5000/api/products/${productId}`
+                  : "http://localhost:5000/api/products",
+                {
+                  method: productId ? "PUT" : "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(productData),
                 }
-              } catch (err) {
-                console.error("Error:", err);
-                messageDiv.textContent = "Server error. Try again.";
+              );
+
+              const result = await response.json();
+              if (result.success !== false) {
+                messageDiv.textContent = productId
+                  ? "Product updated successfully!"
+                  : "Product added successfully!";
+                messageDiv.className = "message-success";
+
+                if (!productId) form.reset();
+
+                // Redirect after short delay
+                setTimeout(
+                  () => (window.location.href = "manageProduct.html"),
+                  1500
+                );
+              } else {
+                messageDiv.textContent = "Failed to save product";
                 messageDiv.className = "message-error";
               }
+            } catch (err) {
+              console.error("Error:", err);
+              messageDiv.textContent = "Server error. Try again.";
+              messageDiv.className = "message-error";
+            }
 
-              submitButton.textContent = originalText;
-              submitButton.disabled = false;
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+            messageDiv.style.display = "block";
+            setTimeout(() => (messageDiv.style.display = "none"), 3000);
+          };
 
-              setTimeout(() => {
-                messageDiv.style.display = "none";
-                messageDiv.className = "";
-              }, 3000);
-            };
-
-            reader.onerror = function () {
+          if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => handleSubmit(reader.result);
+            reader.onerror = () => {
               messageDiv.textContent = "Error reading file";
               messageDiv.className = "message-error";
               submitButton.textContent = originalText;
               submitButton.disabled = false;
             };
-
-            reader.readAsDataURL(file); // Convert file to base64
+            reader.readAsDataURL(file);
           } else {
-            messageDiv.textContent = "Please select an image file.";
-            messageDiv.className = "message-error";
+            handleSubmit(null);
           }
         });
-        
+      });
     </script>
   </body>
 </html>

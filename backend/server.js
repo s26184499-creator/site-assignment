@@ -105,7 +105,7 @@ app.get("/api/products/:id", async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product)
       return res.status(404).json({ success: false, msg: "Product not found" });
-    res.json(product);
+    res.json({ success: true, product }); // <-- always wrap in { success: true }
   } catch (err) {
     res.status(500).json({ success: false, msg: "Error fetching product" });
   }

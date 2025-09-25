@@ -1,119 +1,3 @@
-// Product data for dynamic content
-const products = {
-  1: {
-    name: "Latest Smartphone",
-    price: "$799",
-    image: "",
-    description:
-      "This high-performance smartphone features a stunning display, advanced camera system, and lightning-fast processor. Perfect for photography, gaming, and productivity. With 5G connectivity and all-day battery life, it's the ultimate mobile companion.",
-    features: [
-      '6.7" OLED Display',
-      "Triple Camera System",
-      "5G Connectivity",
-      "All-day Battery Life",
-      "Water Resistant",
-    ],
-  },
-  2: {
-    name: "Gaming Laptop",
-    price: "$1299",
-    image: "https://via.placeholder.com/500x400/2196F3/white?text=Laptop",
-    description:
-      "Experience ultimate gaming performance with this powerful laptop. Featuring a high-end graphics card, fast processor, and advanced cooling system. Perfect for gaming, content creation, and professional work.",
-    features: [
-      "Intel Core i7 Processor",
-      "NVIDIA RTX Graphics",
-      "16GB RAM",
-      "512GB SSD Storage",
-      "144Hz Display",
-    ],
-  },
-  3: {
-    name: "Wireless Headphones",
-    price: "$199",
-    image: "https://via.placeholder.com/500x400/FF9800/white?text=Headphones",
-    description:
-      "Premium wireless headphones with industry-leading noise cancellation. Enjoy crystal-clear audio quality and comfortable all-day wear. Perfect for music, calls, and travel.",
-    features: [
-      "Active Noise Cancellation",
-      "30-hour Battery Life",
-      "Bluetooth 5.0",
-      "Quick Charge",
-      "Comfortable Design",
-    ],
-  },
-  4: {
-    name: "Smartwatch",
-    price: "$399",
-    image: "https://via.placeholder.com/500x400/9C27B0/white?text=Smartwatch",
-    description:
-      "Stay connected and track your health with this advanced smartwatch. Features comprehensive health monitoring, GPS, and seamless smartphone integration.",
-    features: [
-      "Heart Rate Monitor",
-      "GPS Tracking",
-      "Water Resistant",
-      "7-day Battery Life",
-      "Fitness Tracking",
-    ],
-  },
-  5: {
-    name: "Tablet Pro",
-    price: "$699",
-    image: "https://via.placeholder.com/500x400/F44336/white?text=Tablet",
-    description:
-      "Professional-grade tablet with stunning display and powerful performance. Perfect for creative work, productivity, and entertainment. Compatible with professional stylus and keyboard.",
-    features: [
-      '12.9" Retina Display',
-      "Apple M1 Chip",
-      "All-day Battery",
-      "USB-C Connectivity",
-      "Apple Pencil Support",
-    ],
-  },
-  6: {
-    name: "Smart Speaker",
-    price: "$149",
-    image: "https://via.placeholder.com/500x400/607D8B/white?text=Speaker",
-    description:
-      "Voice-controlled smart speaker with premium sound quality. Control your smart home, play music, and get information with simple voice commands.",
-    features: [
-      "Voice Control",
-      "Premium Audio",
-      "Smart Home Hub",
-      "Multi-room Audio",
-      "Privacy Controls",
-    ],
-  },
-  7: {
-    name: "Digital Camera",
-    price: "$899",
-    image: "https://via.placeholder.com/500x400/795548/white?text=Camera",
-    description:
-      "Professional-grade digital camera with advanced features for photography enthusiasts. Capture stunning photos and 4K videos with exceptional quality.",
-    features: [
-      "24MP Sensor",
-      "4K Video Recording",
-      "Image Stabilization",
-      "Wi-Fi Connectivity",
-      "Professional Lenses",
-    ],
-  },
-  8: {
-    name: "Drone with Camera",
-    price: "$549",
-    image: "https://via.placeholder.com/500x400/FF5722/white?text=Drone",
-    description:
-      "High-tech drone with 4K camera and advanced flight features. Perfect for aerial photography, videography, and exploration. GPS navigation and obstacle avoidance included.",
-    features: [
-      "4K Camera",
-      "GPS Navigation",
-      "Obstacle Avoidance",
-      "30-min Flight Time",
-      "Remote Control",
-    ],
-  },
-};
-
 document.addEventListener("DOMContentLoaded", function () {
   const page = window.location.pathname.split("/").pop();
 
@@ -190,6 +74,74 @@ function setupAddToCart() {
     alert(`${qty} x ${product.name} added to cart!`);
   });
 }
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const productId = params.get("id");
+
+  const form = document.getElementById("productForm");
+  const titleInput = document.getElementById("title");
+  const descInput = document.getElementById("description");
+  const priceInput = document.getElementById("price");
+  const imageUrlInput = document.getElementById("imageUrl");
+  const productIdInput = document.getElementById("productId");
+  const submitButton = form.querySelector("button[type=submit]");
+
+  if (productId) {
+    submitButton.textContent = "Update Product";
+    productIdInput.value = productId;
+
+    fetch(`http://localhost:5000/api/products/${productId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const product = data.product;
+          titleInput.value = product.title;
+          descInput.value = product.description;
+          priceInput.value = product.price;
+          imageUrlInput.value = product.imageUrl || "";
+        } else {
+          alert("Failed to fetch product data");
+        }
+      })
+      .catch(err => console.error(err));
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const productData = {
+      title: titleInput.value.trim(),
+      description: descInput.value.trim(),
+      price: parseFloat(priceInput.value),
+      imageUrl: imageUrlInput.value.trim(),
+    };
+
+    try {
+      const response = await fetch(
+        productId
+          ? `http://localhost:5000/api/products/${productId}`
+          : "http://localhost:5000/api/products",
+        {
+          method: productId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(productData),
+        }
+      );
+
+      const result = await response.json();
+      if (result.success) {
+        alert(productId ? "Product updated successfully!" : "Product added successfully!");
+        window.location.href = "manageProduct.html";
+      } else {
+        alert("Operation failed: " + (result.msg || "Unknown error"));
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
+  });
+});
+
 
 // =====================
 // Register Page Logic

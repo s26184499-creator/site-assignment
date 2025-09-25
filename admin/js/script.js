@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   // ===== Logout Binding =====
   const logoutLink = document.getElementById("logoutLink");
   if (logoutLink) {
@@ -17,8 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .then((res) => res.json())
     .then((data) => {
       if (data.success) {
-        document.getElementById("totalProducts").textContent =
-          data.totalProducts;
+        document.getElementById("totalProducts").textContent = data.totalProducts;
         document.getElementById("totalOrders").textContent = data.totalOrders;
         document.getElementById("totalUsers").textContent = data.totalUsers;
       } else {
@@ -27,75 +26,107 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch((err) => console.error("Error fetching stats:", err));
 
-  // ===== Product Form Submission =====
-  const form = document.getElementById("product-form");
+  // ===== Product Add/Edit =====
+  const params = new URLSearchParams(window.location.search);
+  const productId = params.get("id");
+  const form = document.getElementById("productForm");
+  const submitButton = form?.querySelector('button[type="submit"]');
+  const messageDiv = document.getElementById("message");
+  const formTitle = document.getElementById("form-title");
+
+  let existingImageUrl = null;
+
+  if (form && productId) {
+    // Edit mode
+    formTitle.textContent = "Edit Product";
+    submitButton.textContent = "Update Product";
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/products/${productId}`);
+      const data = await res.json();
+      if (data.success) {
+        const p = data.product;
+        document.getElementById("title").value = p.title;
+        document.getElementById("description").value = p.description;
+        document.getElementById("price").value = p.price;
+        existingImageUrl = p.imageUrl || null;
+        document.getElementById("productId").value = productId;
+      }
+    } catch (err) {
+      console.error("Failed to fetch product:", err);
+    }
+  }
+
   if (form) {
-    form.addEventListener("submit", async function (e) {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const title = document.getElementById("title").value;
-      const description = document.getElementById("description").value;
+      const title = document.getElementById("title").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const price = parseFloat(document.getElementById("price").value);
       const imageInput = document.getElementById("image");
-      const price = document.getElementById("price").value;
       const file = imageInput.files[0];
-      const messageDiv = document.getElementById("message");
-      const submitButton = document.querySelector('button[type="submit"]');
-
-      if (!file) {
-        messageDiv.textContent = "Please select an image file.";
-        messageDiv.className = "message-error";
-        return;
-      }
-
-      // Show loading state
+      const productId = document.getElementById("productId")?.value;
+      const isEdit = Boolean(productId);
       const originalText = submitButton.textContent;
-      submitButton.textContent = "Adding Product...";
+
+      submitButton.textContent = isEdit ? "Updating..." : "Adding...";
       submitButton.disabled = true;
 
-      const reader = new FileReader();
-      reader.onloadend = async function () {
+      const sendData = async (imageUrl) => {
+        const payload = { title, description, price };
+        if (imageUrl) payload.imageUrl = imageUrl;
+        else if (existingImageUrl) payload.imageUrl = existingImageUrl;
+
         try {
-          const product = {
-            title,
-            description,
-            imageUrl: reader.result, // Base64 encoded image
-            price,
-          };
+          const response = await fetch(
+            isEdit
+              ? `http://localhost:5000/api/products/${productId}`
+              : "http://localhost:5000/api/products",
+            {
+              method: isEdit ? "PUT" : "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            }
+          );
 
-          const response = await fetch("http://localhost:5000/api/products", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(product),
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            messageDiv.textContent = "Product added successfully!";
+          const result = await response.json();
+          if (result.success) {
+            messageDiv.textContent = isEdit
+              ? "Product updated successfully!"
+              : "Product added successfully!";
             messageDiv.className = "message-success";
-            form.reset();
+            if (!isEdit) form.reset();
+            setTimeout(() => (window.location.href = "manageProduct.html"), 1500);
           } else {
-            messageDiv.textContent = data.msg || "Failed to add product.";
+            messageDiv.textContent = result.msg || "Failed to save product";
             messageDiv.className = "message-error";
           }
-        } catch (error) {
-          console.error("Error adding product:", error);
-          messageDiv.textContent = "Server error. Please try again.";
+        } catch (err) {
+          console.error(err);
+          messageDiv.textContent = "Server error";
           messageDiv.className = "message-error";
         }
 
-        // Reset button
         submitButton.textContent = originalText;
         submitButton.disabled = false;
-
-        // Hide message after 3 seconds
-        setTimeout(() => {
-          messageDiv.textContent = "";
-          messageDiv.className = "";
-        }, 3000);
+        messageDiv.style.display = "block";
+        setTimeout(() => (messageDiv.style.display = "none"), 3000);
       };
 
-      reader.readAsDataURL(file);
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => sendData(reader.result);
+        reader.onerror = () => {
+          messageDiv.textContent = "Error reading file";
+          messageDiv.className = "message-error";
+          submitButton.textContent = originalText;
+          submitButton.disabled = false;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        sendData(null);
+      }
     });
   }
 
